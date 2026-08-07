@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morse Tree Trainer</title>
+
+<style>
+
+body{
+margin:0;
+padding:20px;
+background:#111827;
+font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+color:white;
+text-align:center;
+}
+
+h1{
+margin-top:5px;
+}
+
+#letter{
+font-size:82px;
+font-weight:bold;
+color:#22c55e;
+margin:20px 0;
+}
+
+#code{
+font-size:34px;
+letter-spacing:5px;
+min-height:45px;
+margin-bottom:25px;
+}
+
+button{
+font-size:38px;
+padding:16px 28px;
+margin:6px;
+border:none;
+border-radius:14px;
+cursor:pointer;
+}
+
+.dot{
+background:#2563eb;
+color:white;
+}
+
+.dash{
+background:#7c3aed;
+color:white;
+}
+
+.gray{
+background:#555;
+color:white;
+font-size:24px;
+}
+
+svg{
+width:100%;
+max-width:900px;
+height:auto;
+margin-top:25px;
+}
+
+circle{
+fill:#444;
+stroke:white;
+stroke-width:2;
+transition:0.2s;
+}
+
+text{
+fill:white;
+font-size:18px;
+text-anchor:middle;
+dominant-baseline:middle;
+pointer-events:none;
+}
+
+line{
+stroke:#666;
+stroke-width:2;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Morse Tree Trainer</h1>
+
+<div id="letter">?</div>
+
+<div id="code">Tap • or –</div>
+
+<button class="dot" onclick="press('.')">•</button>
+
+<button class="dash" onclick="press('-')">–</button>
+
+<br>
+
+<button class="gray" onclick="back()">⌫ Back</button>
+
+<button class="gray" onclick="resetTree()">Reset</button>
+
+<svg viewBox="0 0 900 330">
+
+<line x1="450" y1="35" x2="250" y2="90"/>
+<line x1="450" y1="35" x2="650" y2="90"/>
+
+<line x1="250" y1="90" x2="150" y2="165"/>
+<line x1="250" y1="90" x2="350" y2="165"/>
+
+<line x1="650" y1="90" x2="550" y2="165"/>
+<line x1="650" y1="90" x2="750" y2="165"/>
+
+<line x1="150" y1="165" x2="95" y2="245"/>
+<line x1="150" y1="165" x2="205" y2="245"/>
+
+<line x1="350" y1="165" x2="295" y2="245"/>
+<line x1="350" y1="165" x2="405" y2="245"/>
+
+<line x1="550" y1="165" x2="495" y2="245"/>
+<line x1="550" y1="165" x2="605" y2="245"/>
+
+<line x1="750" y1="165" x2="695" y2="245"/>
+<line x1="750" y1="165" x2="805" y2="245"/>
+
+<circle id="." cx="250" cy="90" r="22"/>
+<text x="250" y="90">E</text>
+
+<circle id="-" cx="650" cy="90" r="22"/>
+<text x="650" y="90">T</text>
+
+<circle id=".." cx="150" cy="165" r="22"/>
+<text x="150" y="165">I</text>
+
+<circle id=".-" cx="350" cy="165" r="22"/>
+<text x="350" y="165">A</text>
+
+<circle id="-." cx="550" cy="165" r="22"/>
+<text x="550" y="165">N</text>
+
+<circle id="--" cx="750" cy="165" r="22"/>
+<text x="750" y="165">M</text>
+
+<circle id="..." cx="95" cy="245" r="22"/>
+<text x="95" y="245">S</text>
+
+<circle id="..-" cx="205" cy="245" r="22"/>
+<text x="205" y="245">U</text>
+
+<circle id=".-." cx="295" cy="245" r="22"/>
+<text x="295" y="245">R</text>
+
+<circle id=".--" cx="405" cy="245" r="22"/>
+<text x="405" y="245">W</text>
+
+<circle id="-.." cx="495" cy="245" r="22"/>
+<text x="495" y="245">D</text>
+
+<circle id="-.-" cx="605" cy="245" r="22"/>
+<text x="605" y="245">K</text>
+
+<circle id="--." cx="695" cy="245" r="22"/>
+<text x="695" y="245">G</text>
+
+<circle id="---" cx="805" cy="245" r="22"/>
+<text x="805" y="245">O</text>
+
+</svg>
+
+<script>
+
+const map={
+"A":".-",
+"B":"-...",
+"C":"-.-.",
+"D":"-..",
+"E":".",
+"F":"..-.",
+"G":"--.",
+"H":"....",
+"I":"..",
+"J":".---",
+"K":"-.-",
+"L":".-..",
+"M":"--",
+"N":"-.",
+"O":"---",
+"P":".--.",
+"Q":"--.-",
+"R":".-.",
+"S":"...",
+"T":"-",
+"U":"..-",
+"V":"...-",
+"W":".--",
+"X":"-..-",
+"Y":"-.--",
+"Z":"--.."
+};
+
+const reverse={};
+
+for(let k in map){
+
+reverse[map[k]]=k;
+
+}
+
+let current="";
+
+function pretty(s){
+
+return s.replace(/\./g,"•").replace(/-/g,"–");
+
+}
+
+function update(){
+
+document.getElementById("code").innerHTML=
+current==""?"Tap • or –":pretty(current);
+
+document.getElementById("letter").innerHTML=
+reverse[current]||"?";
+
+document.querySelectorAll("circle").forEach(c=>{
+
+c.setAttribute("fill","#444");
+
+});
+
+for(let i=1;i<=current.length;i++){
+
+const node=document.getElementById(current.substring(0,i));
+
+if(node){
+node.setAttribute("fill","#22c55e");
+
+}
+
+}
+
+}
+
+function press(symbol){
+
+if(current.length>=4)return;
+
+current+=symbol;
+
+update();
+
+}
+
+function back(){
+
+current=current.slice(0,-1);
+
+update();
+
+}
+
+function resetTree(){
+
+current="";
+
+update();
+
+}
+
+update();
+
+</script>
+
+<hr style="margin:40px 0;border:1px solid #333">
+
+<h2>Letter → Morse</h2>
+
+<input
+id="lookup"
+maxlength="1"
+style="
+font-size:34px;
+width:70px;
+text-align:center;
+padding:8px;
+border-radius:8px;
+border:none;
+">
+
+<button
+class="gray"
+onclick="lookupLetter()">
+Show
+</button>
+
+<div
+id="lookupResult"
+style="
+font-size:32px;
+margin-top:20px;
+color:#22c55e;
+min-height:40px;
+">
+</div>
+
+<script>
+
+function lookupLetter(){
+
+let l=document
+.getElementById("lookup")
+.value
+.toUpperCase();
+
+if(map[l]){
+
+document.getElementById("lookupResult").innerHTML=
+
+l+" = "+pretty(map[l]);
+
+highlightLookup(map[l]);
+
+}else{
+
+document.getElementById("lookupResult").innerHTML="Unknown";
+
+}
+
+}
+
+function highlightLookup(code){
+
+document.querySelectorAll("circle").forEach(c=>{
+
+c.setAttribute("fill","#444");
+
+});
+
+for(let i=1;i<=code.length;i++){
+
+const node=document.getElementById(code.substring(0,i));
+
+if(node){
+
+node.setAttribute("fill","#22c55e");
+
+}
+
+}
+
+document.getElementById("letter").innerHTML=
+
+reverse[code];
+
+document.getElementById("code").innerHTML=
+
+pretty(code);
+
+}
+
+document
+.getElementById("lookup")
+.addEventListener("keydown",e=>{
+
+if(e.key==="Enter"){
+
+lookupLetter();
+
+}
+
+});
+
+</script>
+<script>
+
+// Allow keyboard input
+
+document.addEventListener("keydown",e=>{
+
+    if(e.target.id==="lookup") return;
+
+    if(e.key===".")
+        press(".");
+
+    if(e.key==="-")
+        press("-");
+
+    if(e.key==="Backspace")
+        back();
+
+    if(e.key==="Escape")
+        resetTree();
+
+});
+
+// Simple tone when pressing buttons (works in most browsers)
+
+const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function beep(){
+
+    try{
+
+        if(!AudioContextClass) return;
+
+        if(!audioCtx)
+            audioCtx = new AudioContextClass();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.frequency.value = 650;
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        gain.gain.value = 0.05;
+
+        osc.start();
+
+        setTimeout(()=>{
+            osc.stop();
+        },70);
+
+    }catch(e){}
+
+}
+
+// Add sound to the two buttons
+
+document.querySelector(".dot").addEventListener("click",beep);
+document.querySelector(".dash").addEventListener("click",beep);
+
+// Initial display
+
+update();
+
+</script>
+
+<p style="
+margin-top:40px;
+color:#777;
+font-size:14px;
+">
+Morse Tree Trainer • GitHub Pages Edition
+</p>
+
+</body>
+</html>
